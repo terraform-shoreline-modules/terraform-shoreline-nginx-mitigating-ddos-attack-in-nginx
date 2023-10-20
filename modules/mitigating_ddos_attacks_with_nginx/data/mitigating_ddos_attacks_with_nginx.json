@@ -1,0 +1,194 @@
+{
+  "name": "mitigating_ddos_attacks_with_nginx",
+  "description": "This incident type is related to mitigating Distributed Denial of Service (DDoS) attacks using NGINX, which is a popular web server software. DDoS attacks involve overwhelming a server with a flood of traffic from multiple sources, resulting in a denial of service for legitimate users. To prevent such attacks, various techniques can be used such as limiting the rate of requests, number of connections, blocking requests, and using caching to smooth traffic spikes. NGINX can be configured to implement these techniques and provide protection against DDoS attacks.",
+  "params": [
+    {
+      "name": "PORT_NUMBER",
+      "value": ""
+    },
+    {
+      "name": "INTERFACE_NAME",
+      "value": ""
+    },
+    {
+      "name": "BURST_SIZE",
+      "value": ""
+    },
+    {
+      "name": "MAX_REQUESTS_PER_SECOND",
+      "value": ""
+    },
+    {
+      "name": "MAX_CONNECTIONS_PER_IP",
+      "value": ""
+    },
+    {
+      "name": "MAX_CONNECTION_TIME",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Mitigating DDoS Attacks with NGINX\nThis incident type is related to mitigating Distributed Denial of Service (DDoS) attacks using NGINX, which is a popular web server software. DDoS attacks involve overwhelming a server with a flood of traffic from multiple sources, resulting in a denial of service for legitimate users. To prevent such attacks, various techniques can be used such as limiting the rate of requests, number of connections, blocking requests, and using caching to smooth traffic spikes. NGINX can be configured to implement these techniques and provide protection against DDoS attacks."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check if NGINX is running"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `systemctl status nginx`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the current configuration of NGINX"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `nginx -t`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the access and error logs of NGINX"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_nginx_logs()"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the network traffic to the server using the tcpdump command"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `tcpdump -i ${INTERFACE_NAME} port ${PORT_NUMBER}`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the number of active connections to the server"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `netstat -an | grep :${PORT_NUMBER} | wc -l`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the number of connections per IP address"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `netstat -an | grep :${PORT_NUMBER} | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -n`"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the NGINX cache status"
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_nginx_status_curl()"
+    },
+    {
+      "name": "cell_16",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the NGINX configuration for rate limiting"
+    },
+    {
+      "name": "cell_17",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `grep -R \"limit_req_zone\" /etc/nginx/`"
+    },
+    {
+      "name": "cell_18",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Check the NGINX configuration for connection limiting"
+    },
+    {
+      "name": "cell_19",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `grep -R \"limit_conn_zone\" /etc/nginx/`"
+    },
+    {
+      "name": "cell_20",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Configure NGINX to limit the rate of requests to the server, so that it can handle traffic spikes without being overwhelmed."
+    },
+    {
+      "name": "cell_21",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_rate_limit_nginx($BURST_SIZE, $MAX_REQUESTS_PER_SECOND)"
+    },
+    {
+      "name": "cell_22",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Limiting the Number of Connections that can be opened by a single client IP address,"
+    },
+    {
+      "name": "cell_23",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_nginx_connection_limit($MAX_CONNECTIONS_PER_IP)"
+    },
+    {
+      "name": "cell_24",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Close slow connections to free up server resources for legitimate users."
+    },
+    {
+      "name": "cell_25",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_nginx_timeout_config($MAX_CONNECTION_TIME)"
+    }
+  ]
+}
